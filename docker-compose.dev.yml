@@ -1,25 +1,43 @@
-version: "3.8"
-
 services:
   node:
+    build: ./nodejs
+    container_name: node-app-dev
+
+    working_dir: /app
     volumes:
-      # Bind mount your local source into the container
-      - ./nodejs:/usr/src/app
-      # Prevent host node_modules from overwriting container deps
-      - /usr/src/app/node_modules
+      - ./nodejs:/app
+      - /app/node_modules
 
     environment:
       - NODE_ENV=development
+      - PORT=3000
+
+    expose:
+      - "3000"
 
     ports:
-      # Direct access to Node for debugging
       - "3000:3000"
 
-    # Run dev server instead of production start
     command: npm run dev
+    networks:
+      - app-network
 
   nginx:
-    # Same external port, but live-editable config/static files
+    build: ./nginx
+    container_name: nginx-proxy-dev
+
+    ports:
+      - "5024:80"
+
+    depends_on:
+      - node
+
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./nginx/public:/usr/share/nginx/html:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

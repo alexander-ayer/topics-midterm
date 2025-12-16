@@ -1,5 +1,38 @@
-<h1>Welcome to the Wild West Forum</h1>
-<p>This is an intentionally insecure forum for COS 498.</p>
-{{#if error}}
-  <p style="color:red">{{error}}</p>
-{{/if}}
+<section class="hero">
+  <h1 class="title">Wild West Forum</h1>
+  <p class="subtitle">Share your thoughts with the town.</p>
+</section>
+
+<section class="poster">
+  <div class="poster-header">
+    <span class="poster-badge">WANTED</span>
+    <h2 class="poster-title">Recent Posts</h2>
+  </div>
+
+  {{#if comments.length}}
+    <ul class="feed">
+      {{#each comments}}
+        <li class="post">
+          <div class="post-main">
+            <span class="post-author">{{author}}</span>
+            <span class="post-text">{{text}}</span>
+          </div>
+          <div class="post-meta">
+            {{createdAt}}
+          </div>
+        </li>
+      {{/each}}
+    </ul>
+  {{else}}
+    <p class="empty">No posts yet. Be the first to stir up some trouble.</p>
+  {{/if}}
+
+  <div class="poster-actions">
+    {{#if isLoggedIn}}
+      <a class="btn" href="/comment/new">Add a Comment</a>
+    {{else}}
+      <a class="btn" href="/login">Log in to Comment</a>
+    {{/if}}
+  </div>
+</section>
+

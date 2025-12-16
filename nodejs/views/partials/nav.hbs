@@ -1,16 +1,21 @@
-<nav>
-  <a href="/">Home</a>
-  <a href="/comments">Comments</a>
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="/">Wild West Forum</a>
 
-  {{#if isLoggedIn}}
-    <span>Howdy, {{currentUser.username}}</span>
-    <a href="/comment/new">New Comment</a>
-    <form action="/logout" method="POST" style="display:inline;">
-      <button type="submit">Logout</button>
-    </form>
-  {{else}}
-    <a href="/register">Register</a>
-    <a href="/login">Login</a>
-  {{/if}}
+    <div class="nav-links">
+      <a href="/">Home</a>
+
+      {{#if isLoggedIn}}
+        <a href="/comment/new">New Comment</a>
+        <span class="nav-user">Howdy, {{currentUser.username}}</span>
+        <form action="/logout" method="POST" class="nav-form">
+          <button type="submit" class="nav-btn">Logout</button>
+        </form>
+      {{else}}
+        <a href="/register">Register</a>
+        <a href="/login">Login</a>
+      {{/if}}
+    </div>
+  </div>
 </nav>
-<hr>
+

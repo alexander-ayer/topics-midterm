@@ -67,7 +67,7 @@ function requireLogin(req, res, next) {
 
 // Home
 app.get("/", (req, res) => {
-	res.render("home");
+	res.render("home", { comments }); // Render the comment feed on the home page
 });
 
 // Register form
@@ -78,13 +78,6 @@ app.get("/register", (req, res) => {
 // Login form
 app.get("/login", (req, res) => {
   res.render("login", { error: null });
-});
-
-// Show all comments
-app.get("/comments", (req, res) => {
-  res.render("comments", {
-    comments,
-  });
 });
 
 // New comment form
@@ -119,10 +112,11 @@ app.post("/register", (req, res) => {
 
   // Store plaintext
   users.push({ username, password });
+  console.log("Users: ", users);
 
   // Auto-login after register
   req.session.user = { username };
-  return res.redirect("/comments");
+  return res.redirect("/");
 });
 
 // Login
@@ -143,7 +137,8 @@ app.post("/login", (req, res) => {
 
   // Set session info
   req.session.user = { username: user.username };
-  return res.redirect("/comments");
+  console.log(`User ${user.username} logged in`);
+  return res.redirect("/");
 });
 
 // Logout
@@ -170,8 +165,9 @@ app.post("/comment", requireLogin, (req, res) => {
     text: text.trim(),
     createdAt: new Date(),
   });
+  console.log("Comments: ", comments);
 
-  return res.redirect("/comments");
+  return res.redirect("/");
 });
 
 // Error handling for posting
@@ -185,5 +181,5 @@ app.use((err, req, res, next) => {
 // Start Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-	console.log("Server running on port " + PORT);
+	console.log(`Server running on port ${PORT}`);
 });
