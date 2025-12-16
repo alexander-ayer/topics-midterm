@@ -1,0 +1,14 @@
+<h1>Comment Feed</h1>
+
+{{#if comments.length}}
+  <ul>
+    {{#each comments}}
+      <li>
+        <strong>{{author}}</strong> ({{createdAt}}):
+        {{text}}
+      </li>
+    {{/each}}
+  </ul>
+{{else}}
+  <p>No comments yet. Be the first to post!</p>
+{{/if}}
