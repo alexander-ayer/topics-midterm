@@ -1,9 +1,9 @@
-version: "3.8"
-
 services:
   node:
     build: ./nodejs
     container_name: node-app
+    environment:
+      - PORT=3000
     expose:
       - "3000"
     networks:
