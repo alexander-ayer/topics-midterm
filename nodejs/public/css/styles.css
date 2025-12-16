@@ -24,7 +24,6 @@ body {
 }
 
 .nav-inner {
-  max-width: 980px;
   margin: 0 auto;
   padding: 14px 18px;
   display: flex;
@@ -63,6 +62,7 @@ body {
 
 .nav-btn {
   font: inherit;
+  color: var(--ink);
   border: 1px solid var(--line);
   background: transparent;
   padding: 6px 10px;
@@ -204,4 +204,59 @@ main {
 
 .btn:hover {
   background: var(--accent-dark);
+}
+
+footer {
+  margin-top: 40px;
+  padding: 16px 18px;
+
+  border-top: 2px solid var(--line);
+  color: var(--muted);
+  background: transparent;
+}
+
+/* FORMS: inputs + textarea + buttons */
+input[type="text"],
+input[type="password"],
+textarea {
+  width: 100%;
+  font: inherit;
+  padding: 10px 12px;
+  border: 2px solid rgba(107,74,46,0.35);
+  background: #fffaf0;
+  color: var(--ink);
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--line);
+  box-shadow: 0 0 0 2px rgba(140,58,43,0.15);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.poster button, 
+ form button {
+  font: inherit;
+  cursor: pointer;
+  color: var(--paper);
+  background: var(--accent);
+  border: 1px solid var(--accent-dark);
+  padding: 10px 16px;
+  letter-spacing: 0.5px;
+}
+
+.poster button:hover, 
+form button:hover {
+  background: var(--accent-dark);
+}
+
+.error {
+  color: var(--accent-dark);
+  margin: 10px 0;
 }

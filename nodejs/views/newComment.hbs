@@ -1,15 +1,20 @@
-<h1>New Comment</h1>
+<section class="poster">
+  <div class="poster-header">
+    <h2 class="poster-title">New Comment</h2>
+  </div>
 
-{{#if error}}
-  <p style="color:red">{{error}}</p>
-{{/if}}
+  {{#if error}}
+    <p class="error">{{error}}</p>
+  {{/if}}
 
-<form action="/comment" method="POST">
-  <label>
-    Comment:
-    <br>
-    <textarea name="text" rows="4" cols="50"></textarea>
-  </label>
-  <br>
-  <button type="submit">Post Comment</button>
-</form>
+  <form action="/comment" method="POST">
+    <label style="display:block; margin-bottom:14px;">
+      Comment:
+      <textarea name="text"></textarea>
+    </label>
+
+    <div class="poster-actions">
+      <button type="submit">Post Comment</button>
+    </div>
+  </form>
+</section>
