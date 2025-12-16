@@ -67,7 +67,7 @@ function requireLogin(req, res, next) {
 
 // Home
 app.get("/", (req, res) => {
-	res.render("home");
+	res.render("home", { comments }); // Render the comment feed on the home page
 });
 
 // Register form
@@ -78,13 +78,6 @@ app.get("/register", (req, res) => {
 // Login form
 app.get("/login", (req, res) => {
   res.render("login", { error: null });
-});
-
-// Show all comments
-app.get("/comments", (req, res) => {
-  res.render("comments", {
-    comments,
-  });
 });
 
 // New comment form
@@ -122,7 +115,7 @@ app.post("/register", (req, res) => {
 
   // Auto-login after register
   req.session.user = { username };
-  return res.redirect("/comments");
+  return res.redirect("/");
 });
 
 // Login
@@ -143,7 +136,7 @@ app.post("/login", (req, res) => {
 
   // Set session info
   req.session.user = { username: user.username };
-  return res.redirect("/comments");
+  return res.redirect("/");
 });
 
 // Logout
@@ -171,7 +164,7 @@ app.post("/comment", requireLogin, (req, res) => {
     createdAt: new Date(),
   });
 
-  return res.redirect("/comments");
+  return res.redirect("/");
 });
 
 // Error handling for posting
