@@ -101,7 +101,7 @@ main {
   background: var(--paper);
   border: 2px solid var(--line);
   padding: 18px;
-  margin: 22px auto 0;
+  margin:  0 auto;
   max-width: 760px;
   box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   position: relative;
@@ -119,6 +119,7 @@ main {
 .poster-header {
   display: flex;
   align-items: baseline;
+  justify-content: center;
   gap: 12px;
   border-bottom: 2px solid rgba(107,74,46,0.35);
   padding-bottom: 10px;
