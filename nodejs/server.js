@@ -112,6 +112,7 @@ app.post("/register", (req, res) => {
 
   // Store plaintext
   users.push({ username, password });
+  console.log("Users: ", users);
 
   // Auto-login after register
   req.session.user = { username };
@@ -136,6 +137,7 @@ app.post("/login", (req, res) => {
 
   // Set session info
   req.session.user = { username: user.username };
+  console.log(`User ${user.username} logged in`);
   return res.redirect("/");
 });
 
@@ -163,6 +165,7 @@ app.post("/comment", requireLogin, (req, res) => {
     text: text.trim(),
     createdAt: new Date(),
   });
+  console.log("Comments: ", comments);
 
   return res.redirect("/");
 });
@@ -178,5 +181,5 @@ app.use((err, req, res, next) => {
 // Start Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-	console.log("Server running on port " + PORT);
+	console.log(`Server running on port ${PORT}`);
 });
