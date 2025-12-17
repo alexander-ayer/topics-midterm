@@ -80,6 +80,13 @@ app.get("/login", (req, res) => {
   res.render("login", { error: null });
 });
 
+// Comments page
+app.get("/comments", (req, res) => {
+  res.render("comments", {
+    comments,
+  });
+});
+
 // New comment form
 app.get("/comment/new", (req, res) => {
   if (!req.session.user) {	// Redirect to login if not logged in

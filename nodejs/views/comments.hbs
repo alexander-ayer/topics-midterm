@@ -1,14 +1,29 @@
-<h1>Comment Feed</h1>
+<section class="poster">
+  <div class="poster-header">
+    <span class="poster-badge">WANTED</span>
+    <h2 class="poster-title">All Comments</h2>
+  </div>
 
-{{#if comments.length}}
-  <ul>
-    {{#each comments}}
-      <li>
-        <strong>{{author}}</strong> ({{createdAt}}):
-        {{text}}
-      </li>
-    {{/each}}
-  </ul>
-{{else}}
-  <p>No comments yet. Be the first to post!</p>
-{{/if}}
+  {{#if comments.length}}
+    <ul class="feed">
+      {{#each comments}}
+        <li class="post">
+          <div class="post-main">
+            <span class="post-author">{{author}}</span>
+            <span class="post-text">{{text}}</span>
+          </div>
+          <div class="post-meta">
+            {{createdAt}}
+          </div>
+        </li>
+      {{/each}}
+    </ul>
+  {{else}}
+    <p class="empty">No posts yet.</p>
+  {{/if}}
+
+  <div class="poster-actions">
+    <a class="btn" href="/">Back to Home</a>
+  </div>
+</section>
+
