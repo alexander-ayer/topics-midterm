@@ -54,7 +54,7 @@ Running the Application
     docker compose up --build
 
   Navigate to:
-    http://104.236.60.116:5024
+    http://<server ip>:5024
 
   To Stop Container, Run:
     docker compose down
