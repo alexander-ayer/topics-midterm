@@ -29,20 +29,6 @@ Technology Stack
   * Containerization: Docker, Docker Compose
   * Hosting: DigitalOcean Droplet
 
-Project Structure
-.
-├── nodejs/                 # Express application
-│   ├── server.js
-│   ├── views/
-│   ├── public/
-│   └── Dockerfile
-├── nginx/                  # Nginx reverse proxy
-│   ├── nginx.conf
-│   └── Dockerfile
-├── docker-compose.yml
-├── docker-compose.dev.yml
-└── README.md
-
 Running the Application
 
   Prerequisites
