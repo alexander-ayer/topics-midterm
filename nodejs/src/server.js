@@ -1,45 +1,32 @@
 // server.js
 const path = require("path");
+const crypto = require("crypto");
 const express = require("express");
-const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const exphbs = require("express-handlebars");
-const { initDatabase } = require('./db/database')
+
+const { initDatabase } = require("./db/database");
+const { attachCurrentUser, requireAuth } = require("./middleware/auth");
+const { createUser, findUserByUsername } = require("./db/users");
+const { createSession, deleteSession } = require("./db/sessions");
 
 const app = express();
 
-(async () => {
-  console.log("Initializing database...");
-  await initDatabase();
-  console.log("Database initialized");
-})();
-
-
 // In- memory database
-let users = [];		// {username, password}
 let comments = [];	// {author, text, createdAt}
 
 // Express + Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Resolve current user from the SQLite session cookie
+app.use(attachCurrentUser);
+
 // Access static assets
 app.use(express.static(path.join(__dirname, '..', "public")));
 
-//Session setup
-app.use(
-	session({
-		secret: "wild-west-secret",
-		resave: false,
-		saveUninitialized: false,
-		cookie: {
-			maxAge: 1000 * 60 * 60,
-		},
-	})
-);
 
 // Handlebar setup
-
 app.engine(
 	"hbs",
 	exphbs.engine({
@@ -52,24 +39,6 @@ app.engine(
 
 app.set("view engine", "hbs");
 app.set("views", path.join(__dirname, '..', "views"));
-
-
-// Helper Middleware
-// Make currentUser available to all views
-app.use((req, res, next) => {
-	res.locals.currentUser = req.session.user || null;
-	res.locals.isLoggedIn = !!req.session.user;
-	next();
-});
-
-// Simple auth guard for routes that require login
-function requireLogin(req, res, next) {
-	if(!req.session.user) {
-		return res.redirect("/login");
-	}
-	next();
-}
-
 
 // GET Routes
 
@@ -90,84 +59,111 @@ app.get("/login", (req, res) => {
 
 // Comments page
 app.get("/comments", (req, res) => {
-  res.render("comments", {
-    comments,
-  });
+  res.render("comments", { comments });
 });
 
 // New comment form
-app.get("/comment/new", (req, res) => {
-  if (!req.session.user) {	// Redirect to login if not logged in
-    return res.redirect("/login");
-  }
+app.get("/comment/new", requireAuth, (req, res) => {
   res.render("newComment", { error: null });
 });
 
 // POST Routes
 
 // Register a new user
-app.post("/register", (req, res) => {
-  const { username, password } = req.body;
+app.post("/register", async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
 
-  if (!username || !password) {
-    return res.render("register", {
-      error: "Username and password are required.",
+    if (!username || !password) {
+      return res.render("register", {
+        error: "Username and password are required.",
+        username,
+      });
+    }
+
+    // Enforce unique usernames in the database
+    const existing = await findUserByUsername(username);
+    if (existing) {
+      return res.render("register", {
+        error: "That username is already taken.",
+        username,
+      });
+    }
+
+    const userId = await createUser({
       username,
+      passwordHash: password,
+      email: `${username}@example.com`, // Placeholder
+      displayName: username,
     });
-  }
 
-  // Check if username already exists
-  const existing = users.find((u) => u.username === username);
-  if (existing) {
-    return res.render("register", {
-      error: "That username is already taken.",
-      username,
+    // Create a persistent session and store only the session id in a cookie.
+    const sessionId = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60).toISOString(); // 1 hour
+
+    await createSession({ userId, sessionId, expiresAt });
+
+    res.cookie("session_id", sessionId, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60, // 1 hour
     });
+
+    return res.redirect("/");
+  } catch (err) {
+    return next(err);
   }
-
-  // Store plaintext
-  users.push({ username, password });
-  console.log("Users: ", users);
-
-  // Auto-login after register
-  req.session.user = { username };
-  return res.redirect("/");
 });
 
 // Login
-app.post("/login", (req, res) => {
-  const { username, password } = req.body;
+app.post("/login", async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
 
-  // Find the user in the in-memory array
-  const user = users.find(
-    (u) => u.username === username && u.password === password
-  );
+    const user = await findUserByUsername(username);
+    if (!user || user.password_hash !== password) {
+      return res.render("login", {
+        error: "Invalid username or password.",
+        username,
+      });
+    }
 
-  if (!user) {
-    return res.render("login", {
-      error: "Invalid username or password.",
-      username,
+    const sessionId = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60).toISOString(); // 1 hour
+
+    await createSession({ userId: user.id, sessionId, expiresAt });
+
+    res.cookie("session_id", sessionId, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60,
     });
-  }
 
-  // Set session info
-  req.session.user = { username: user.username };
-  console.log(`User ${user.username} logged in`);
-  return res.redirect("/");
+    return res.redirect("/");
+  } catch (err) {
+    return next(err);
+  }
 });
 
 // Logout
-app.post("/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.clearCookie("connect.sid");
-    res.redirect("/");
-  });
+app.post("/logout", async (req, res, next) => {
+  try {
+    const sessionId = req.cookies?.session_id;
+    if (sessionId) {
+      await deleteSession(sessionId);
+    }
+
+    res.clearCookie("session_id");
+    return res.redirect("/");
+  } catch (err) {
+    return next(err);
+  }
 });
 
 // Create a new comment
-app.post("/comment", requireLogin, (req, res) => {
+app.post("/comment", requireAuth, (req, res) => {
   const { text } = req.body;
-  const username = req.session.user.username;
+  const username = req.user.username;
 
   if (!text || text.trim() === "") {
     return res.render("newComment", {
@@ -180,7 +176,6 @@ app.post("/comment", requireLogin, (req, res) => {
     text: text.trim(),
     createdAt: new Date(),
   });
-  console.log("Comments: ", comments);
 
   return res.redirect("/");
 });
@@ -192,6 +187,14 @@ app.use((err, req, res, next) => {
 		error: "Something went wrong. The sheriff is looking into it.",
 	});
 });
+
+// Initialize database
+(async () => {
+  console.log("Initializing database...");
+  await initDatabase();
+  console.log("Database initialized");
+})();
+
 
 // Start Server
 const PORT = process.env.PORT || 3000;
