@@ -1,19 +1,22 @@
 services:
   node:
     build: ./nodejs
-    container_name: node-app
+    container_name: final-node-app
     environment:
       - PORT=3000
+      - DATABASE_PATH=/data/forum.db
     expose:
       - "3000"
     networks:
       - app-network
+    volumes:
+      - forum-data:/data
 
   nginx:
     build: ./nginx
-    container_name: nginx-proxy
+    container_name: final-nginx-proxy
     ports:
-      - "5024:80"
+      - "5034:80"
     depends_on:
       - node
     networks:
@@ -21,3 +24,6 @@ services:
 
 networks:
   app-network:
+
+volumes:
+  forum-data:

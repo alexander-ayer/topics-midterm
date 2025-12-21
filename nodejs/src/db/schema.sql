@@ -1,0 +1,44 @@
+-- Core database schema for the Less Wild West Forum
+
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  display_name TEXT NOT NULL,
+
+  profile_color TEXT,
+  profile_avatar TEXT,
+
+  failed_login_count INTEGER DEFAULT 0,
+  lockout_until DATETIME,
+
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  session_id TEXT UNIQUE NOT NULL,
+  expires_at DATETIME NOT NULL,
+
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  content TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME,
+
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS login_attempts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL,
+  ip_address TEXT NOT NULL,
+  success INTEGER NOT NULL,
+  attempted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
