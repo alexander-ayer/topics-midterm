@@ -23,7 +23,10 @@
   {{/if}}
 
   <div class="poster-actions">
-    <a class="btn" href="/">Back to Home</a>
+    {{#if isLoggedIn}}
+      <a class="btn" href="/comment/new">Post a Comment</a>
+    {{else}}
+      <a class="btn" href="/login">Login to Post</a>
+    {{/if}}
   </div>
 </section>
-

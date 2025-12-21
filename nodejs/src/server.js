@@ -9,11 +9,10 @@ const { initDatabase } = require("./db/database");
 const { attachCurrentUser, requireAuth } = require("./middleware/auth");
 const { createUser, findUserByUsername } = require("./db/users");
 const { createSession, deleteSession } = require("./db/sessions");
+const { listRecentComments, createComment } = require("./db/comments");
+
 
 const app = express();
-
-// In- memory database
-let comments = [];	// {author, text, createdAt}
 
 // Express + Middleware
 app.use(express.urlencoded({ extended: true }));
@@ -44,7 +43,7 @@ app.set("views", path.join(__dirname, '..', "views"));
 
 // Home
 app.get("/", (req, res) => {
-	res.render("home", { comments }); // Render the comment feed on the home page
+	res.render("home");
 });
 
 // Register form
@@ -58,9 +57,15 @@ app.get("/login", (req, res) => {
 });
 
 // Comments page
-app.get("/comments", (req, res) => {
-  res.render("comments", { comments });
+app.get("/comments", async (req, res, next) => {
+  try {
+    const comments = await listRecentComments(200);
+    return res.render("comments", { comments });
+  } catch (err) {
+    return next(err);
+  }
 });
+
 
 // New comment form
 app.get("/comment/new", requireAuth, (req, res) => {
@@ -161,24 +166,25 @@ app.post("/logout", async (req, res, next) => {
 });
 
 // Create a new comment
-app.post("/comment", requireAuth, (req, res) => {
-  const { text } = req.body;
-  const username = req.user.username;
+app.post("/comment", requireAuth, async (req, res, next) => {
+  try {
+    const { text } = req.body;
 
-  if (!text || text.trim() === "") {
-    return res.render("newComment", {
-      error: "Comment cannot be empty.",
+    if (!text || text.trim() === "") {
+      return res.render("newComment", { error: "Comment cannot be empty." });
+    }
+
+    await createComment({
+      userId: req.user.id,
+      content: text.trim(),
     });
+
+    return res.redirect("/comments");
+  } catch (err) {
+    return next(err);
   }
-
-  comments.push({
-    author: username,
-    text: text.trim(),
-    createdAt: new Date(),
-  });
-
-  return res.redirect("/");
 });
+
 
 // Error handling for posting
 app.use((err, req, res, next) => {

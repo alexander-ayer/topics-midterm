@@ -260,3 +260,9 @@ form button:hover {
   color: var(--accent-dark);
   margin: 10px 0;
 }
+
+.auth-hint {
+  margin: 10px 0 15px;
+  font-style: italic;
+  color: #666;
+}
