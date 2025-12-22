@@ -10,17 +10,31 @@
   <form action="/login" method="POST">
     <label style="display:block; margin-bottom:10px;">
       Username:
-      <input type="text" name="username" value="{{username}}">
+      <input
+        type="text"
+        name="username"
+        value="{{username}}"
+        required
+        autocomplete="username"
+      >
     </label>
 
-    <label style="display:block; margin-bottom: 10px;">
+    <label style="display:block; margin-bottom:10px;">
       Password:
-      <input type="password" name="password">
+      <input
+        type="password"
+        name="password"
+        required
+        autocomplete="current-password"
+      >
     </label>
 
     <div class="poster-actions">
       <button type="submit">Login</button>
     </div>
   </form>
-</section>
 
+  <div class="poster-footer" style="margin-top:10px;">
+    <a class="poster-link" href="/forgot-password">Forgot your password?</a>
+  </div>
+</section>

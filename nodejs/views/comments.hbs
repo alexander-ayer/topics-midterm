@@ -9,15 +9,37 @@
       {{#each comments}}
         <li class="post">
           <div class="post-main">
-            <span class="post-author">{{author}}</span>
+            <span class="post-author">{{authorDisplayName}}</span>
             <span class="post-text">{{text}}</span>
           </div>
+
           <div class="post-meta">
             {{createdAt}}
           </div>
         </li>
       {{/each}}
     </ul>
+
+    {{#if totalPages}}
+        <div class="poster-actions" style="display:flex; justify-content:space-between; gap:12px;">
+          {{#if hasPrev}}
+            <a class="btn" href="/comments?page={{prevPage}}">← Prev</a>
+          {{else}}
+            <span></span>
+          {{/if}}
+
+          <div style="align-self:center; color: var(--muted);">
+            Page {{page}} of {{totalPages}}
+          </div>
+
+          {{#if hasNext}}
+            <a class="btn" href="/comments?page={{nextPage}}">Next →</a>
+          {{else}}
+            <span></span>
+          {{/if}}
+        </div>
+    {{/if}}
+
   {{else}}
     <p class="empty">No posts yet.</p>
   {{/if}}

@@ -13,10 +13,9 @@ const { open } = require('sqlite');
 const path = require('path');
 const fs = require('fs');
 
-const DB_PATH = process.env.DATABASE_PATH || './forum.db';
+const DB_PATH = process.env.DATABASE_PATH || path.join(process.cwd(), "forum.db");
 
 let db;
-
 
 // Initialize the SQLite database connection.
 async function initDatabase() {

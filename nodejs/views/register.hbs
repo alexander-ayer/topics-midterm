@@ -10,12 +10,45 @@
   <form action="/register" method="POST">
     <label style="display:block; margin-bottom:10px;">
       Username:
-      <input type="text" name="username" value="{{username}}">
+      <input
+        type="text"
+        name="username"
+        value="{{username}}"
+        required
+        autocomplete="username"
+      >
+    </label>
+
+    <label style="display:block; margin-bottom:10px;">
+      Display Name:
+      <input
+        type="text"
+        name="displayName"
+        value="{{displayName}}"
+        required
+        autocomplete="nickname"
+      >
+    </label>
+
+    <label style="display:block; margin-bottom:10px;">
+      Email:
+      <input
+        type="email"
+        name="email"
+        value="{{email}}"
+        required
+        autocomplete="email"
+      >
     </label>
 
     <label style="display:block; margin-bottom:10px;">
       Password:
-      <input type="password" name="password">
+      <input
+        type="password"
+        name="password"
+        required
+        autocomplete="new-password"
+      >
     </label>
 
     <div class="poster-actions">
@@ -23,4 +56,3 @@
     </div>
   </form>
 </section>
-

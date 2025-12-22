@@ -1,20 +1,21 @@
-// server.js
+// src/server.js
+
 const path = require("path");
-const crypto = require("crypto");
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const exphbs = require("express-handlebars");
 
 const { initDatabase } = require("./db/database");
-const { attachCurrentUser, requireAuth } = require("./middleware/auth");
-const { createUser, findUserByUsername } = require("./db/users");
-const { createSession, deleteSession } = require("./db/sessions");
-const { listRecentComments, createComment } = require("./db/comments");
+const { attachCurrentUser } = require("./middleware/auth");
 
+// Route modules
+const authRoutes = require("./routes/authRoutes");
+const commentRoutes = require("./routes/commentRoutes");
 
 const app = express();
 
 // Express + Middleware
+app.set("trust proxy", 1);
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
@@ -22,188 +23,65 @@ app.use(cookieParser());
 app.use(attachCurrentUser);
 
 // Access static assets
-app.use(express.static(path.join(__dirname, '..', "public")));
+app.use(express.static(path.join(__dirname, "..", "public")));
 
-
-// Handlebar setup
+// Handlebars setup
 app.engine(
-	"hbs",
-	exphbs.engine({
-		extname: ".hbs",
-		defaultLayout: "main",
-		layoutsDir: path.join(__dirname, '..', "views",  "layouts"),
-		partialsDir: path.join(__dirname, '..', "views",  "partials"),
-	})
+  "hbs",
+  exphbs.engine({
+    extname: ".hbs",
+    defaultLayout: "main",
+    layoutsDir: path.join(__dirname, "..", "views", "layouts"),
+    partialsDir: path.join(__dirname, "..", "views", "partials"),
+  })
 );
 
 app.set("view engine", "hbs");
-app.set("views", path.join(__dirname, '..', "views"));
+app.set("views", path.join(__dirname, "..", "views"));
 
-// GET Routes
-
+// GET Routes (pages/forms)
 // Home
 app.get("/", (req, res) => {
-	res.render("home");
+  res.render("home");
 });
 
 // Register form
 app.get("/register", (req, res) => {
-  res.render("register", { error: null });
+  res.render("register", { error: null, username: "", email: "", displayName: ""   
+  });
 });
 
 // Login form
 app.get("/login", (req, res) => {
-  res.render("login", { error: null });
+  res.render("login", { error: null, username: "" });
 });
 
-// Comments page
-app.get("/comments", async (req, res, next) => {
-  try {
-    const comments = await listRecentComments(200);
-    return res.render("comments", { comments });
-  } catch (err) {
-    return next(err);
-  }
-});
+// Mount POST/feature routes
+app.use(authRoutes);
+app.use(commentRoutes);
 
-
-// New comment form
-app.get("/comment/new", requireAuth, (req, res) => {
-  res.render("newComment", { error: null });
-});
-
-// POST Routes
-
-// Register a new user
-app.post("/register", async (req, res, next) => {
-  try {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res.render("register", {
-        error: "Username and password are required.",
-        username,
-      });
-    }
-
-    // Enforce unique usernames in the database
-    const existing = await findUserByUsername(username);
-    if (existing) {
-      return res.render("register", {
-        error: "That username is already taken.",
-        username,
-      });
-    }
-
-    const userId = await createUser({
-      username,
-      passwordHash: password,
-      email: `${username}@example.com`, // Placeholder
-      displayName: username,
-    });
-
-    // Create a persistent session and store only the session id in a cookie.
-    const sessionId = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 60).toISOString(); // 1 hour
-
-    await createSession({ userId, sessionId, expiresAt });
-
-    res.cookie("session_id", sessionId, {
-      httpOnly: true,
-      sameSite: "lax",
-      maxAge: 1000 * 60 * 60, // 1 hour
-    });
-
-    return res.redirect("/");
-  } catch (err) {
-    return next(err);
-  }
-});
-
-// Login
-app.post("/login", async (req, res, next) => {
-  try {
-    const { username, password } = req.body;
-
-    const user = await findUserByUsername(username);
-    if (!user || user.password_hash !== password) {
-      return res.render("login", {
-        error: "Invalid username or password.",
-        username,
-      });
-    }
-
-    const sessionId = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 60).toISOString(); // 1 hour
-
-    await createSession({ userId: user.id, sessionId, expiresAt });
-
-    res.cookie("session_id", sessionId, {
-      httpOnly: true,
-      sameSite: "lax",
-      maxAge: 1000 * 60 * 60,
-    });
-
-    return res.redirect("/");
-  } catch (err) {
-    return next(err);
-  }
-});
-
-// Logout
-app.post("/logout", async (req, res, next) => {
-  try {
-    const sessionId = req.cookies?.session_id;
-    if (sessionId) {
-      await deleteSession(sessionId);
-    }
-
-    res.clearCookie("session_id");
-    return res.redirect("/");
-  } catch (err) {
-    return next(err);
-  }
-});
-
-// Create a new comment
-app.post("/comment", requireAuth, async (req, res, next) => {
-  try {
-    const { text } = req.body;
-
-    if (!text || text.trim() === "") {
-      return res.render("newComment", { error: "Comment cannot be empty." });
-    }
-
-    await createComment({
-      userId: req.user.id,
-      content: text.trim(),
-    });
-
-    return res.redirect("/comments");
-  } catch (err) {
-    return next(err);
-  }
-});
-
-
-// Error handling for posting
+// Error handling (must be after routes)
 app.use((err, req, res, next) => {
-	console.error("Server error:", err);
-	res.status(500).render("home", {
-		error: "Something went wrong. The sheriff is looking into it.",
-	});
+  console.error("Server error:", err);
+  res.status(500).render("home", {
+    error: "Something went wrong. The sheriff is looking into it.",
+  });
 });
 
-// Initialize database
+// Initialize database (ensure schema exists before requests)
 (async () => {
-  console.log("Initializing database...");
-  await initDatabase();
-  console.log("Database initialized");
+  try {
+    console.log("Initializing database...");
+    await initDatabase();
+    console.log("Database initialized");
+  } catch (e) {
+    console.error("Database init failed:", e);
+    process.exit(1);
+  }
 })();
-
 
 // Start Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-	console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
