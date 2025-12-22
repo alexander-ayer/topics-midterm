@@ -21,58 +21,101 @@ const router = express.Router();
 // POST /register
 router.post("/register", async (req, res, next) => {
   try {
-    const { username, password, email, displayName } = req.body;
+    const rawUsername = req.body.username;
+    const rawPassword = req.body.password;
+    const rawEmail = req.body.email;
+    const rawDisplayName = req.body.displayName;
+    const rawConfirmPassword = req.body.confirmPassword;
 
-    if (!username || !password || !email || !displayName) {
-      return res.render("register", {
-        error: "Username, password, email, and display name are required.",
+    // Normalize (but do NOT echo password back)
+    const username = String(rawUsername || "").trim();
+    const password = String(rawPassword || "");
+    const email = String(rawEmail || "").trim().toLowerCase();
+    const displayName = String(rawDisplayName || "").trim();
+
+    const errors = [];
+
+    // Required fields
+    if (!username) errors.push("Username is required.");
+    if (!password) errors.push("Password is required.");
+    if (!email) errors.push("Email is required.");
+    if (!displayName) errors.push("Display name is required.");
+
+    // Validate formats
+    if (email && !isValidEmail(email)) {
+      errors.push("Please enter a valid email address.");
+    }
+
+    if (displayName && !isValidDisplayName(displayName)) {
+      errors.push(
+        "Display name must be 3–30 characters and use letters/numbers/spaces/_-."
+      );
+    }
+
+    if (username && displayName) {
+      if (displayName.toLowerCase() === username.toLowerCase()) {
+        errors.push("Display name must be different from username.");
+      }
+    }
+
+    // Password strength
+    if (password && username) {
+      const pwErr = validatePasswordStrength(password, username);
+      if (pwErr) {
+        if (Array.isArray(pwErr)) errors.push(...pwErr);
+        else errors.push(pwErr);
+      }
+    } else if (password) {
+      // Ifnpassword validator expects username, skip/avoid calling it without username
+      const pwErr = validatePasswordStrength(password, "");
+      if (pwErr) errors.push(Array.isArray(pwErr) ? pwErr.join("\n") : pwErr);
+    }
+
+    // confirm password field
+    const confirmPassword = String(rawConfirmPassword || "");
+    if (password !== confirmPassword) {
+      errors.push("Passwords must match");
+    }
+
+    // If we already have validation errors, stop here so we don't write to db
+    if (errors.length > 0) {
+      return res.status(400).render("register", {
+        errors,        // multi-error array
+        error: null,   // Avoid double display
         username,
         email,
         displayName,
       });
     }
 
-    if (!isValidEmail(email)) {
-      return res.render("register", { error: "Please enter a valid email address.", username, email, displayName });
-    }
-
-    if (!isValidDisplayName(displayName)) {
-      return res.render("register", {
-        error: "Display name must be 3–30 characters and use letters/numbers/spaces/_-.",
-        username,
-        email,
-        displayName,
-      });
-    }
-
-    if (displayName.trim().toLowerCase() === username.trim().toLowerCase()) {
-      return res.render("register", { error: "Display name must be different from username.", username, email, displayName });
-    }
-
-    const pwError = validatePasswordStrength(password, username);
-    if (pwError) {
-      return res.render("register", { error: pwError, username, email, displayName });
-    }
-
+    // Uniqueness checks
     const existingUser = await findUserByUsername(username);
-    if (existingUser) {
-      return res.render("register", { error: "That username is already taken.", username, email, displayName });
-    }
+    if (existingUser) errors.push("That username is already taken.");
 
     const existingEmail = await findUserByEmail(email);
-    if (existingEmail) {
-      return res.render("register", { error: "That email is already registered.", username, email, displayName });
+    if (existingEmail) errors.push("That email is already registered.");
+
+    if (errors.length > 0) {
+      return res.status(400).render("register", {
+        errors,
+        error: null,
+        username,
+        email,
+        displayName,
+      });
     }
 
+    // Create user
     const passwordHash = await hashPassword(password);
 
     const userId = await createUser({
       username,
       passwordHash,
       email,
-      displayName: displayName.trim(),
+      displayName,
     });
 
+    // Create session
     const sessionId = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60).toISOString();
     await createSession({ userId, sessionId, expiresAt });
@@ -80,8 +123,9 @@ router.post("/register", async (req, res, next) => {
     res.cookie("session_id", sessionId, {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production", // set true once HTTPS-only
+      secure: process.env.NODE_ENV === "production",
       maxAge: 1000 * 60 * 60,
+      path: "/", // good explicit default
     });
 
     return res.redirect("/");
@@ -89,6 +133,9 @@ router.post("/register", async (req, res, next) => {
     return next(err);
   }
 });
+
+
+
 
 // POST /login
 router.post("/login", async (req, res, next) => {
@@ -161,7 +208,7 @@ router.post("/logout", requireAuth, async (req, res, next) => {
       sameSite: "lax",
     });
 
-    return res.redirect("/login");
+    return res.redirect("/");
   } catch (err) {
     return next(err);
   }

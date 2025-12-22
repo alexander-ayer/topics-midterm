@@ -17,19 +17,21 @@ function isValidDisplayName(displayName) {
   return /^[a-zA-Z0-9 _-]+$/.test(v);
 }
 
-// Password strength validation helper
+// Password strength validation helper. Updated to return list of errors opposed to first one that gets flagged
 function validatePasswordStrength(password, username) {
   const p = String(password || "");
   const u = String(username || "").trim().toLowerCase();
 
-  if (p.length < 12) return "Password must be at least 12 characters.";
-  if (!/[a-z]/.test(p)) return "Password must include a lowercase letter.";
-  if (!/[A-Z]/.test(p)) return "Password must include an uppercase letter.";
-  if (!/[0-9]/.test(p)) return "Password must include a number.";
-  if (!/[^a-zA-Z0-9]/.test(p)) return "Password must include a symbol.";
-  if (u && p.toLowerCase().includes(u)) return "Password must not contain your username.";
+  const issues = [];
 
-  return null;
+  if (p.length < 12) issues.push("Password must be at least 12 characters.");
+  if (!/[a-z]/.test(p)) issues.push("Password must include a lowercase letter.");
+  if (!/[A-Z]/.test(p)) issues.push("Password must include an uppercase letter.");
+  if (!/[0-9]/.test(p)) issues.push("Password must include a number.");
+  if (!/[^a-zA-Z0-9]/.test(p)) issues.push("Password must include a symbol.");
+  if (u && p.toLowerCase().includes(u)) issues.push("Password must not contain your username.");
+
+  return issues.length ? issues : null;
 }
 
 // Helper to capture user IP, used in login attempt tracking

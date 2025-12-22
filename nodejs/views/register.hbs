@@ -3,11 +3,15 @@
     <h2 class="poster-title">Register</h2>
   </div>
 
-  {{#if error}}
-    <p class="error">{{error}}</p>
+  {{#if errors}}
+    <ul class="error" style="margin: 10px 0; padding-left: 18px;">
+      {{#each errors}}
+        <li>{{this}}</li>
+      {{/each}}
+    </ul>
   {{/if}}
 
-  <form action="/register" method="POST">
+  <form action="/register" method="POST" novalidate>
     <label style="display:block; margin-bottom:10px;">
       Username:
       <input
@@ -46,6 +50,16 @@
       <input
         type="password"
         name="password"
+        required
+        autocomplete="new-password"
+      >
+    </label>
+
+    <label style="display:block; margin-bottom:10px;">
+      Confirm Password:
+      <input
+        type="password"
+        name="confirmPassword"
         required
         autocomplete="new-password"
       >

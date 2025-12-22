@@ -11,6 +11,7 @@ const { attachCurrentUser } = require("./middleware/auth");
 // Route modules
 const authRoutes = require("./routes/authRoutes");
 const commentRoutes = require("./routes/commentRoutes");
+const profileRoutes = require("./routes/profileRoutes");
 
 const app = express();
 
@@ -33,6 +34,9 @@ app.engine(
     defaultLayout: "main",
     layoutsDir: path.join(__dirname, "..", "views", "layouts"),
     partialsDir: path.join(__dirname, "..", "views", "partials"),
+    helpers: {
+      eq: (a, b) => String(a) === String(b),
+    },
   })
 );
 
@@ -59,6 +63,7 @@ app.get("/login", (req, res) => {
 // Mount POST/feature routes
 app.use(authRoutes);
 app.use(commentRoutes);
+app.use(profileRoutes);
 
 // Error handling (must be after routes)
 app.use((err, req, res, next) => {

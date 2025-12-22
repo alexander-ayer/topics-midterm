@@ -3,12 +3,11 @@
     <a class="nav-brand" href="/">Wild West Forum</a>
 
     <div class="nav-links">
-      <a href="/">Home</a>
       <a href="/comments">Comments</a>
 
       {{#if isLoggedIn}}
         <a href="/comment/new">New Comment</a>
-        <span class="nav-user">Howdy, {{currentUser.username}}</span>
+        <a class="nav-user" href="/profile">Howdy, {{currentUser.display_name}}</a>
         <form action="/logout" method="POST" class="nav-form">
           <button type="submit" class="nav-btn">Logout</button>
         </form>

@@ -89,4 +89,68 @@ async function clearFailedLogin(userId) {
   );
 }
 
-module.exports = { createUser, findUserByUsername, findUserById, findUserByEmail, recordFailedLogin, isUserLockedById, clearFailedLogin,};
+// Insert password hash
+async function updatePasswordHash(userId, passwordHash) {
+  const db = await getDb();
+  const res = await db.run(
+    `UPDATE users
+     SET password_hash = ?
+     WHERE id = ?`,
+    [passwordHash, userId]
+  );
+  return res.changes; // 1 if updated, 0 if not
+}
+
+// Insert email
+async function updateEmail(userId, email) {
+  const db = await getDb();
+  const res = await db.run(
+    `UPDATE users
+     SET email = ?
+     WHERE id = ?`,
+    [email, userId]
+  );
+  return res.changes;
+}
+
+// Insert display name
+async function updateDisplayName(userId, displayName) {
+  const db = await getDb();
+  const res = await db.run(
+    `UPDATE users
+     SET display_name = ?
+     WHERE id = ?`,
+    [displayName, userId]
+  );
+  return res.changes;
+}
+
+// Insert profile color
+async function updateProfileColor(userId, profileColor) {
+  const db = await getDb();
+  const res = await db.run(
+    `UPDATE users
+     SET profile_color = ?
+     WHERE id = ?`,
+    [profileColor, userId]
+  );
+  return res.changes;
+}
+
+// Insert profile avatar
+async function updateProfileAvatar(userId, profileAvatar) {
+  const db = await getDb();
+  const res = await db.run(
+    `UPDATE users
+     SET profile_avatar = ?
+     WHERE id = ?`,
+    [profileAvatar, userId]
+  );
+  return res.changes;
+}
+
+
+module.exports = { createUser, 
+  findUserByUsername, findUserById, findUserByEmail, recordFailedLogin, 
+  isUserLockedById, clearFailedLogin, updatePasswordHash, updateEmail,
+  updateDisplayName, updateProfileColor, updateProfileAvatar,};

@@ -1,0 +1,80 @@
+{{!-- views/profile.hbs --}}
+<section class="poster">
+  <div class="poster-header">
+    <span class="poster-badge">PROFILE</span>
+    <h2 class="poster-title">Your Account</h2>
+  </div>
+
+  {{#if error}}
+    <p class="error">{{error}}</p>
+  {{/if}}
+
+  {{#if success}}
+    <p style="color: var(--muted); margin: 10px 0; font-weight: 700;">{{success}}</p>
+  {{/if}}
+
+  {{!-- Summary Row --}}
+  <div style="display:flex; gap:16px; align-items:flex-start; padding: 8px 6px;">
+    {{!-- Avatar / Icon --}}
+    <div
+      style="
+        width:96px;
+        height:96px;
+        border-radius:999px;
+        border:2px solid rgba(107,74,46,0.35);
+        background:#fffaf0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        {{#if user.profile_color}}border-color: {{user.profile_color}};{{/if}}
+      "
+      aria-label="Profile avatar"
+    >
+      {{#if user.profile_avatar}}
+        <img
+          src="/images/avatars/{{user.profile_avatar}}.svg"
+          alt="Profile avatar"
+          width="64"
+          height="64"
+          style="display:block;"
+        >
+      {{else}}
+        <span
+          style="
+            font-weight:700;
+            font-size:34px;
+            color: var(--accent-dark);
+            line-height:1;
+          "
+          aria-hidden="true"
+        >
+          {{#if user.display_name}}
+            {{user.display_name.[0]}}
+          {{else}}
+            {{user.username.[0]}}
+          {{/if}}
+        </span>
+      {{/if}}
+    </div>
+
+    {{!-- Identity Details --}}
+    <div style="flex:1;">
+      <h3 style="margin:0 0 6px; color: var(--ink);">
+        {{user.display_name}}
+      </h3>
+
+      <div style="color: var(--muted); margin-bottom:6px;">
+        <strong style="color: var(--ink);">Email:</strong> {{user.email}}
+      </div>
+
+      <div style="color: var(--muted); margin-bottom:6px;">
+        <strong style="color: var(--ink);">Username:</strong> {{user.username}}
+      </div>
+
+      <div class="poster-actions" style="text-align:left;">
+        <a class="btn" href="/profile/edit">Edit Profile</a>
+        <a class="btn" href="/profile/password" style="margin-left:10px;">Change Password</a>
+      </div>
+    </div>
+  </div>
+</section>

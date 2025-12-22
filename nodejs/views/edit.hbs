@@ -1,0 +1,89 @@
+<section class="poster" id="edit" style="margin-top: 18px;">
+  <div class="poster-header">
+    <h2 class="poster-title">Edit Profile Information</h2>
+  </div>
+
+  {{#if error}}
+      <p class="flash-message error">{{error}}</p>
+    {{/if}}
+
+    {{#if success}}
+      <p class="flash-message success">{{success}}</p>
+    {{/if}}
+
+  {{!-- Change Display Name --}}
+  <form action="/profile/display-name" method="POST" novalidate>
+    <label style="display:block; margin-bottom:10px;">
+      Display Name
+      <input type="text" name="displayName">
+    </label>
+
+    <div class="poster-actions">
+      <button type="submit">Update</button>
+    </div>
+  </form>
+
+  <div style="margin:18px 0; border-top:1px solid rgba(107,74,46,0.25);"></div>
+
+  {{!-- Change Email --}}
+  <form action="/profile/email" method="POST" novalidate>
+    <label style="display:block; margin-bottom:10px;">
+      Email:
+      <input type="email" name="newEmail">
+    </label>
+
+    <label style="display:block; margin-bottom:10px;">
+      Password:
+      <input type="password" name="currentPassword">
+    </label>
+
+    <div class="poster-actions">
+      <button type="submit">Update Email</button>
+    </div>
+  </form>
+
+  <div style="margin:18px 0; border-top:1px solid rgba(107,74,46,0.25);"></div>
+
+  {{!-- Customization --}}
+  <form action="/profile/customize" method="POST">
+    <label style="display:block; margin-bottom:10px;">
+      Profile Color:
+      <select name="profileColor" style="width:100%; padding:8px;">
+        <option value="">Default</option>
+        <option value="#c0392b" {{#if (eq user.profile_color "#c0392b")}}selected{{/if}}>Red</option>
+        <option value="#27ae60" {{#if (eq user.profile_color "#27ae60")}}selected{{/if}}>Green</option>
+        <option value="#2980b9" {{#if (eq user.profile_color "#2980b9")}}selected{{/if}}>Blue</option>
+      </select>
+    </label>
+
+    <label style="display:block; margin-bottom:10px;">
+      Profile Avatar:
+      <select name="profileAvatar" style="width:100%; padding:8px;">
+        <option value="">Default</option>
+        <option value="cowboy"  {{#if (eq user.profile_avatar "cowboy")}}selected{{/if}}>Cowboy</option>
+        <option value="sheriff" {{#if (eq user.profile_avatar "sheriff")}}selected{{/if}}>Sheriff</option>
+        <option value="horse"   {{#if (eq user.profile_avatar "horse")}}selected{{/if}}>Horse</option>
+        <option value="boot"   {{#if (eq user.profile_avatar "boot")}}selected{{/if}}>Boot</option>
+        <option value="horseshoe"   {{#if (eq user.profile_avatar "horseshoe")}}selected{{/if}}>Horseshoe</option>
+      </select>
+    </label>
+
+    {{!-- Optional preview --}}
+    {{#if user.profile_avatar}}
+      <div style="margin-top:10px;">
+        <img
+          src="/images/avatars/{{user.profile_avatar}}.svg"
+          alt="Selected avatar"
+          width="72"
+          height="72"
+          style="display:block;"
+        >
+      </div>
+    {{/if}}
+
+    <div class="poster-actions">
+      <button type="submit">Save Customization</button>
+    </div>
+
+  </form>
+</section>
