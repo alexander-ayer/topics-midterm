@@ -7,23 +7,32 @@ services:
       - DATABASE_PATH=/data/forum.db
     expose:
       - "3000"
+    volumes:
+      - ./nodejs/src/db:/data
     networks:
       - app-network
-    volumes:
-      - forum-data:/data
 
-  nginx:
-    build: ./nginx
-    container_name: final-nginx-proxy
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: final-npm
+    restart: unless-stopped
+
+    # Public entrypoint for the site (required)
     ports:
-      - "5034:80"
+      - "80:80"
+      - "443:443"
+
+      # Admin UI: bind ONLY to localhost so it's not public
+      - "127.0.0.1:81:81"
+
+    volumes:
+      - ./npm/data:/data
+      - ./npm/letsencrypt:/etc/letsencrypt
+
+    networks:
+      - app-network
     depends_on:
       - node
-    networks:
-     - app-network
 
 networks:
   app-network:
-
-volumes:
-  forum-data:
