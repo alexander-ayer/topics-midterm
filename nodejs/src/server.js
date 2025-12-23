@@ -4,14 +4,20 @@ const path = require("path");
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const exphbs = require("express-handlebars");
-
+const http = require("http");
+const { Server } = require("socket.io");
 const { initDatabase } = require("./db/database");
 const { attachCurrentUser } = require("./middleware/auth");
+const { findSession } = require("./db/sessions");
+const { findUserById } = require("./db/users");
 
 // Route modules
 const authRoutes = require("./routes/authRoutes");
 const commentRoutes = require("./routes/commentRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const chatApiRoutes = require("./routes/chatApiRoutes");
+const chatPageRoutes = require("./routes/chatPageRoutes");
+
 
 const app = express();
 
@@ -60,10 +66,13 @@ app.get("/login", (req, res) => {
   res.render("login", { error: null, username: "" });
 });
 
-// Mount POST/feature routes
+// Mount feature routes
 app.use(authRoutes);
 app.use(commentRoutes);
 app.use(profileRoutes);
+app.use(chatApiRoutes);
+app.use(chatPageRoutes);
+
 
 // Error handling (must be after routes)
 app.use((err, req, res, next) => {
@@ -87,6 +96,48 @@ app.use((err, req, res, next) => {
 
 // Start Server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: { origin: true, credentials: true },
+});
+
+app.set("io", io);
+
+// Socket auth middleware: validate session cookie and attach safe user
+io.use(async (socket, next) => {
+  try {
+    const cookieHeader = socket.handshake.headers.cookie || "";
+    const match = cookieHeader.match(/(?:^|;\s*)session_id=([^;]+)/);
+    const sessionId = match ? decodeURIComponent(match[1]) : null;
+
+    if (!sessionId) return next(new Error("Not authenticated"));
+
+    const session = await findSession(sessionId);
+    if (!session) return next(new Error("Not authenticated"));
+
+    if (new Date(session.expires_at) < new Date()) {
+      return next(new Error("Session expired"));
+    }
+
+    const user = await findUserById(session.user_id);
+    if (!user) return next(new Error("Not authenticated"));
+
+    socket.user = {
+      id: user.id,
+      displayName: user.display_name,
+      profileColor: user.profile_color,
+      profileAvatar: user.profile_avatar,
+    };
+
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+});
+
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+

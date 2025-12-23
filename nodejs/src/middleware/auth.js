@@ -44,5 +44,4 @@ function requireAuth(req, res, next) {
   return next();
 }
 
-module.exports = { attachCurrentUser, requireAuth,
-};
+module.exports = { attachCurrentUser, requireAuth, };

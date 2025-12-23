@@ -35,4 +35,12 @@ async function initDatabase() {
   return db;
 }
 
-module.exports = { initDatabase };
+function getDb() {
+  if (!db) {
+    throw new Error("Database not initialized. Call initDatabase() first.");
+  }
+  return db;
+}
+
+
+module.exports = { initDatabase, getDb };

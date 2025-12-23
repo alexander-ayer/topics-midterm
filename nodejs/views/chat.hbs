@@ -1,0 +1,18 @@
+<section class="poster">
+  <div class="poster-header">
+    <span class="poster-badge">CHAT</span>
+    <h2 class="poster-title">Town Square</h2>
+  </div>
+
+  <div class="card" style="margin-top:12px;">
+    <div id="chatLog" style="height: 420px; overflow:auto; padding: 12px;"></div>
+
+    <div style="border-top:1px solid rgba(107,74,46,0.15); padding: 12px; display:flex; gap:10px;">
+      <input id="chatInput" type="text" placeholder="Type a message…" style="flex:1;" maxlength="1000" />
+      <button id="chatSendBtn" class="btn">Send</button>
+    </div>
+  </div>
+</section>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/chat.js"></script>
